@@ -76,6 +76,11 @@ public class SunshineSyncTask {
                         WeatherContract.WeatherEntry.CONTENT_URI,
                         weatherValues);
 
+                // Send data to the wearable
+                UpdateWear updateWear = UpdateWear.getInstance();
+                updateWear.initialise(context);
+                updateWear.sendData();
+
                 /*
                  * Finally, after we insert data into the ContentProvider, determine whether or not
                  * we should notify the user that the weather has been refreshed.
