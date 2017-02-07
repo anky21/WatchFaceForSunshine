@@ -141,7 +141,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     .addOnConnectionFailedListener(this)
                     .build();
             mGoogleApiClient.connect();
-            Log.d(TAG, "GoogleApiClient called");
 
             setWatchFaceStyle(new WatchFaceStyle.Builder(MyWatchFace.this)
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
