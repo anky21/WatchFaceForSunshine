@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -40,6 +42,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
@@ -48,6 +51,7 @@ import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -102,11 +106,21 @@ public class MyWatchFace extends CanvasWatchFaceService {
             GoogleApiClient.OnConnectionFailedListener,
             DataApi.DataListener {
         private final String TAG = Engine.class.getSimpleName();
+        private static final long TIMEOUT_MS = 1000;
         private GoogleApiClient mGoogleApiClient;
         private static final String PATH = "/data";
         private static final String CURRENT_TIME = "current_time";
+        private static final String MAX_TEMP = "max";
+        private static final String MIN_TEMP = "min";
+        private static final String WEATHER_ID = "weather_id";
+        private static final String WEATHER_ICON = "weather_icon";
 
-        public long currentTime;
+        private long currentTime;
+        private String maxTemp;
+        private String minTemp;
+        private int weatherId;
+        private Bitmap weatherIcon;
+        private Asset weatherIconAsset;
 
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
@@ -295,6 +309,10 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     : String.format("%d:%02d:%02d", mCalendar.get(Calendar.HOUR),
                     mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
+            long confirm = currentTime;
+            String timeNow = String.valueOf(currentTime);
+            Log.d(TAG, "present time is " + timeNow);
+            canvas.drawText(timeNow, mXOffset, mYOffset - 30, mTextPaint);
         }
 
         /**
@@ -349,17 +367,49 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onDataChanged(DataEventBuffer dataEvents) {
+            Log.d(TAG, "onDataChanged called");
             for (DataEvent event : dataEvents) {
                 if (event.getType() == DataEvent.TYPE_CHANGED) {
                     // DataItem changed
                     DataItem item = event.getDataItem();
-                    if (item.getUri().getPath().compareTo(PATH) == 0) {
+                    String path = item.getUri().getPath();
+                    if (path.equals(PATH)) {
                         DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
                         currentTime = dataMap.getLong(CURRENT_TIME);
-                        Log.d(TAG, "onDataChanged is called: " + currentTime);
+                        Log.d(TAG, "current time is " + currentTime);
+                        maxTemp = dataMap.getString(MAX_TEMP);
+                        Log.d(TAG, "Max temp is " + maxTemp);
+                        minTemp = dataMap.getString(MIN_TEMP);
+                        Log.d(TAG, "Min temp is " + minTemp);
+//                        weatherId = dataMap.getInt(WEATHER_ID);
+//                        Log.d(TAG, "Weather Id is " + weatherId);
+                        weatherIconAsset = dataMap.getAsset(WEATHER_ICON);
+                        weatherIcon = loadBitmapFromAsset(weatherIconAsset);
                     }
                 }
             }
+        }
+
+        public Bitmap loadBitmapFromAsset(Asset asset) {
+            Log.d(TAG, "loadBitmap");
+            if (asset == null) {
+                throw new IllegalArgumentException("Asset must be non-null");
+            }
+            ConnectionResult result =
+                    mGoogleApiClient.blockingConnect(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            if (!result.isSuccess()) {
+                return null;
+            }
+            // convert asset into a file descriptor and block until it's ready
+            InputStream assetInputStream = Wearable.DataApi.getFdForAsset(
+                    mGoogleApiClient, asset).await().getInputStream();
+
+            if (assetInputStream == null) {
+                Log.w(TAG, "Requested an unknown Asset.");
+                return null;
+            }
+            // decode the stream into a bitmap
+            return BitmapFactory.decodeStream(assetInputStream);
         }
     }
 }

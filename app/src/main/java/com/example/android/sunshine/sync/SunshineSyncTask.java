@@ -79,7 +79,7 @@ public class SunshineSyncTask {
                 // Send data to the wearable
                 UpdateWear updateWear = UpdateWear.getInstance();
                 updateWear.initialise(context);
-                updateWear.sendData();
+                updateWear.sendData(context, weatherValues);
 
                 /*
                  * Finally, after we insert data into the ContentProvider, determine whether or not
