@@ -145,7 +145,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
         float mTimeXOffset;
         float mIconXOffset;
         float mTempXOffset;
-        private float mTextSpacingHeight;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -173,7 +172,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     .build());
             Resources resources = MyWatchFace.this.getResources();
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
-            mTextSpacingHeight = resources.getDimension(R.dimen.digital_text_spacing);
 
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.blue));
@@ -294,9 +292,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
                     mTextPaint.setAntiAlias(!inAmbientMode);
-                    mMediumTextPaint.setAntiAlias(!inAmbientMode);
-                    mSmallTextPaint.setAntiAlias(!inAmbientMode);
-                    mLinePaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
             }
@@ -321,7 +316,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    // TODO: Add code to handle the tap gesture.
                     Toast.makeText(getApplicationContext(), R.string.message, Toast.LENGTH_SHORT)
                             .show();
                     break;
@@ -430,11 +424,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     if (path.equals(PATH)) {
                         DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
                         currentTime = dataMap.getLong(CURRENT_TIME);
-                        Log.d(TAG, "current time is " + currentTime);
                         maxTemp = dataMap.getString(MAX_TEMP);
-                        Log.d(TAG, "Max temp is " + maxTemp);
                         minTemp = dataMap.getString(MIN_TEMP);
-                        Log.d(TAG, "Min temp is " + minTemp);
                         iconResourceId = dataMap.getInt(ICON_RESOURCE_ID);
 
                         if (iconResourceId != -1) {
@@ -443,7 +434,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
                                 @Override
                                 public void run() {
                                     Bitmap weatherIcon = loadBitmapFromAsset(weatherIconAsset);
-                                    weatherScaledIcon = Bitmap.createScaledBitmap(weatherIcon, 80, 80, true);
+                                    weatherScaledIcon = Bitmap.createScaledBitmap(weatherIcon, 60, 60, true);
                                 }
                             }).start();
                         }
@@ -453,7 +444,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
         }
 
         public Bitmap loadBitmapFromAsset(Asset asset) {
-            Log.d(TAG, "loadBitmap");
             if (asset == null) {
                 throw new IllegalArgumentException("Asset must be non-null");
             }

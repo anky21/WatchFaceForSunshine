@@ -78,7 +78,6 @@ public class UpdateWear implements GoogleApiClient.ConnectionCallbacks,
         putDataMapRequest.getDataMap().putInt(ICON_RESOURCE_ID, iconResourceId);
 
         if(iconResourceId != -1){
-            Log.d(TAG, "asset is sent");
             Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), iconResourceId);
             Asset weatherIcon = createAssetFromBitmap(bitmap);
             putDataMapRequest.getDataMap().putAsset(WEATHER_ICON, weatherIcon);
