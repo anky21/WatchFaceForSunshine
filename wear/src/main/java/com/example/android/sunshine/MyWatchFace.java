@@ -121,7 +121,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
         private String maxTemp = "";
         private String minTemp = "";
         private int iconResourceId;
-        private Bitmap weatherIcon;
+        private Bitmap weatherScaledIcon;
         private Asset weatherIconAsset;
 
         final Handler mUpdateTimeHandler = new EngineHandler(this);
@@ -142,6 +142,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
         };
         float mXOffset;
         float mYOffset;
+        float mTimeXOffset;
+        float mIconXOffset;
+        float mTempXOffset;
         private float mTextSpacingHeight;
 
         /**
@@ -254,6 +257,12 @@ public class MyWatchFace extends CanvasWatchFaceService {
             boolean isRound = insets.isRound();
             mXOffset = resources.getDimension(isRound
                     ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
+            mTimeXOffset = resources.getDimension(isRound
+                    ? R.dimen.time_x_offset_round : R.dimen.time_x_offset);
+            mIconXOffset = resources.getDimension(isRound
+                    ? R.dimen.icon_x_offset_round : R.dimen.icon_x_offset);
+            mTempXOffset = resources.getDimension(isRound
+                    ? R.dimen.temp_x_offset_round : R.dimen.temp_x_offset);
             float textSize = resources.getDimension(isRound
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
             float mediumTextSize = resources.getDimension(isRound
@@ -347,11 +356,18 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     mCalendar.get(Calendar.MINUTE));
             String date = getDate(mCalendar);
 
-            canvas.drawText(text, centerX - 60, centerY - 50, mTextPaint);
-            canvas.drawText(date, mXOffset, centerY, mSmallTextPaint);
-            canvas.drawLine(centerX - 30, centerY + 20, centerX + 30, centerY + 20, mLinePaint);
-            canvas.drawText(maxTemp, centerX - 40, centerY + 80, mMediumTextPaint);
-            canvas.drawText(minTemp, centerX + 40, centerY + 80, mSmallTextPaint);
+            canvas.drawText(text, mXOffset + mTimeXOffset, centerY - 50, mTextPaint);
+
+            if (!isInAmbientMode() && maxTemp != null) {
+                canvas.drawText(date, mXOffset, centerY, mSmallTextPaint);
+                canvas.drawLine(centerX - 30, centerY + 20, centerX + 30, centerY + 20, mLinePaint);
+                canvas.drawText(maxTemp, centerX - 30, centerY + 80, mMediumTextPaint);
+                canvas.drawText(minTemp, centerX + mTempXOffset, centerY + 80, mSmallTextPaint);
+
+                if (weatherScaledIcon != null) {
+                    canvas.drawBitmap(weatherScaledIcon, mXOffset + mIconXOffset, centerY + 30, null);
+                }
+            }
         }
 
         /**
@@ -426,7 +442,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    weatherIcon = loadBitmapFromAsset(weatherIconAsset);
+                                    Bitmap weatherIcon = loadBitmapFromAsset(weatherIconAsset);
+                                    weatherScaledIcon = Bitmap.createScaledBitmap(weatherIcon, 80, 80, true);
                                 }
                             }).start();
                         }
