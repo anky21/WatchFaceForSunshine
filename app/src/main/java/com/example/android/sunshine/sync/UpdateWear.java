@@ -66,8 +66,8 @@ public class UpdateWear implements GoogleApiClient.ConnectionCallbacks,
         ContentValues values = contentValues[0];
         // Constantly changing data: current time
         long currentTime = System.currentTimeMillis();
-        String maxTemp = formatTemperature(context, values.getAsDouble(MAX_TEMP));
-        String minTemp = formatTemperature(context, values.getAsDouble(MIN_TEMP));
+        String maxTemp = formatTemperature(context, values.getAsDouble(MAX_TEMP)).trim();
+        String minTemp = formatTemperature(context, values.getAsDouble(MIN_TEMP)).trim();
         int weatherId = values.getAsInteger(WEATHER_ID);
         int iconResourceId = getSmallArtResourceIdForWeatherCondition(weatherId);
 

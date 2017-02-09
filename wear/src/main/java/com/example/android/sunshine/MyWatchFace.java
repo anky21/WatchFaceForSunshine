@@ -126,6 +126,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
         Paint mTextPaint;
+        Paint mSmallTextPaint;
+        Paint mMediumTextPaint;
         boolean mAmbient;
         Calendar mCalendar;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
@@ -137,6 +139,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
         };
         float mXOffset;
         float mYOffset;
+        private float mTextSpacingHeight;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -164,12 +167,18 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     .build());
             Resources resources = MyWatchFace.this.getResources();
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
+            mTextSpacingHeight = resources.getDimension(R.dimen.digital_text_spacing);
 
             mBackgroundPaint = new Paint();
-            mBackgroundPaint.setColor(resources.getColor(R.color.background));
+            mBackgroundPaint.setColor(resources.getColor(R.color.blue));
 
+            // Paint for time
             mTextPaint = new Paint();
             mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+
+            // Paint for max temperature
+            mMediumTextPaint = new Paint();
+            mMediumTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
 
             mCalendar = Calendar.getInstance();
         }
@@ -235,8 +244,13 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
             float textSize = resources.getDimension(isRound
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
+            float mediumTextSize = resources.getDimension(isRound
+                    ? R.dimen.medium_text_size_round : R.dimen.medium_text_size);
+            float smallTextSize = resources.getDimension(isRound
+                    ? R.dimen.small_text_size_round : R.dimen.small_text_size);
 
             mTextPaint.setTextSize(textSize);
+            mMediumTextPaint.setTextSize(mediumTextSize);
         }
 
         @Override
@@ -258,6 +272,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
                     mTextPaint.setAntiAlias(!inAmbientMode);
+                    mMediumTextPaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
             }
@@ -309,10 +324,12 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     : String.format("%d:%02d:%02d", mCalendar.get(Calendar.HOUR),
                     mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
-            long confirm = currentTime;
-            String timeNow = String.valueOf(currentTime);
-            Log.d(TAG, "present time is " + timeNow);
-            canvas.drawText(timeNow, mXOffset, mYOffset - 30, mTextPaint);
+//            long confirm = currentTime;
+//            String timeNow = String.valueOf(currentTime);
+//            Log.d(TAG, "present time is " + timeNow);
+
+            canvas.drawText(maxTemp + minTemp, mXOffset, mYOffset + mTextSpacingHeight, mMediumTextPaint);
+//            canvas.drawText(maxTemp, mXOffset, mYOffset + mTextSpacingHeight, mMediumTextPaint);
         }
 
         /**
