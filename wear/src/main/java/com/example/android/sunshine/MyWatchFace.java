@@ -112,13 +112,13 @@ public class MyWatchFace extends CanvasWatchFaceService {
         private static final String CURRENT_TIME = "current_time";
         private static final String MAX_TEMP = "max";
         private static final String MIN_TEMP = "min";
-        private static final String WEATHER_ID = "weather_id";
+        private static final String ICON_RESOURCE_ID = "icon_resource_id";
         private static final String WEATHER_ICON = "weather_icon";
 
         private long currentTime;
         private String maxTemp;
         private String minTemp;
-        private int weatherId;
+        private int iconResourceId;
         private Bitmap weatherIcon;
         private Asset weatherIconAsset;
 
@@ -367,7 +367,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onDataChanged(DataEventBuffer dataEvents) {
-            Log.d(TAG, "onDataChanged called");
             for (DataEvent event : dataEvents) {
                 if (event.getType() == DataEvent.TYPE_CHANGED) {
                     // DataItem changed
@@ -381,10 +380,17 @@ public class MyWatchFace extends CanvasWatchFaceService {
                         Log.d(TAG, "Max temp is " + maxTemp);
                         minTemp = dataMap.getString(MIN_TEMP);
                         Log.d(TAG, "Min temp is " + minTemp);
-//                        weatherId = dataMap.getInt(WEATHER_ID);
-//                        Log.d(TAG, "Weather Id is " + weatherId);
-                        weatherIconAsset = dataMap.getAsset(WEATHER_ICON);
-                        weatherIcon = loadBitmapFromAsset(weatherIconAsset);
+                        iconResourceId = dataMap.getInt(ICON_RESOURCE_ID);
+
+                        if (iconResourceId != -1) {
+                            weatherIconAsset = dataMap.getAsset(WEATHER_ICON);
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    weatherIcon = loadBitmapFromAsset(weatherIconAsset);
+                                }
+                            }).start();
+                        }
                     }
                 }
             }

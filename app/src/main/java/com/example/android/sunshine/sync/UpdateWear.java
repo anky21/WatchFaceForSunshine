@@ -38,6 +38,7 @@ public class UpdateWear implements GoogleApiClient.ConnectionCallbacks,
     private static final String MAX_TEMP = "max";
     private static final String MIN_TEMP = "min";
     private static final String WEATHER_ID = "weather_id";
+    private static final String ICON_RESOURCE_ID = "icon_resource_id";
     private static final String WEATHER_ICON = "weather_icon";
 
     private UpdateWear() {}
@@ -74,7 +75,7 @@ public class UpdateWear implements GoogleApiClient.ConnectionCallbacks,
         putDataMapRequest.getDataMap().putLong(CURRENT_TIME, currentTime);
         putDataMapRequest.getDataMap().putString(MAX_TEMP, maxTemp);
         putDataMapRequest.getDataMap().putString(MIN_TEMP, minTemp);
-        putDataMapRequest.getDataMap().putInt(WEATHER_ID, weatherId);
+        putDataMapRequest.getDataMap().putInt(ICON_RESOURCE_ID, iconResourceId);
 
         if(iconResourceId != -1){
             Log.d(TAG, "asset is sent");
