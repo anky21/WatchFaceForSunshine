@@ -53,7 +53,9 @@ import com.google.android.gms.wearable.Wearable;
 
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -116,8 +118,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
         private static final String WEATHER_ICON = "weather_icon";
 
         private long currentTime;
-        private String maxTemp;
-        private String minTemp;
+        private String maxTemp = "";
+        private String minTemp = "";
         private int iconResourceId;
         private Bitmap weatherIcon;
         private Asset weatherIconAsset;
@@ -128,6 +130,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
         Paint mTextPaint;
         Paint mSmallTextPaint;
         Paint mMediumTextPaint;
+        Paint mLinePaint;
         boolean mAmbient;
         Calendar mCalendar;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
@@ -179,6 +182,15 @@ public class MyWatchFace extends CanvasWatchFaceService {
             // Paint for max temperature
             mMediumTextPaint = new Paint();
             mMediumTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+
+            // Paint for date and min temperature
+            mSmallTextPaint = new Paint();
+            mSmallTextPaint = createTextPaint(resources.getColor(R.color.digital_grey_text));
+
+            // Paint for the line
+            mLinePaint = new Paint();
+            mLinePaint.setARGB(255, 200, 200, 200);
+            mLinePaint.setStrokeWidth(1.0f);
 
             mCalendar = Calendar.getInstance();
         }
@@ -251,6 +263,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
             mTextPaint.setTextSize(textSize);
             mMediumTextPaint.setTextSize(mediumTextSize);
+            mSmallTextPaint.setTextSize(smallTextSize);
         }
 
         @Override
@@ -273,6 +286,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
                 if (mLowBitAmbient) {
                     mTextPaint.setAntiAlias(!inAmbientMode);
                     mMediumTextPaint.setAntiAlias(!inAmbientMode);
+                    mSmallTextPaint.setAntiAlias(!inAmbientMode);
+                    mLinePaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
             }
@@ -307,6 +322,16 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
+
+            int width = bounds.width();
+            int height = bounds.height();
+
+            // Find the center. Ignore the window insets so that, on round watches
+            // with a "chin", the watch face is centered on the entire screen, not
+            // just the usable portion.
+            float centerX = width / 2f;
+            float centerY = height / 2f;
+
             // Draw the background.
             if (isInAmbientMode()) {
                 canvas.drawColor(Color.BLACK);
@@ -318,18 +343,15 @@ public class MyWatchFace extends CanvasWatchFaceService {
             long now = System.currentTimeMillis();
             mCalendar.setTimeInMillis(now);
 
-            String text = mAmbient
-                    ? String.format("%d:%02d", mCalendar.get(Calendar.HOUR),
-                    mCalendar.get(Calendar.MINUTE))
-                    : String.format("%d:%02d:%02d", mCalendar.get(Calendar.HOUR),
-                    mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
-            canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
-//            long confirm = currentTime;
-//            String timeNow = String.valueOf(currentTime);
-//            Log.d(TAG, "present time is " + timeNow);
+            String text = String.format("%d:%02d", mCalendar.get(Calendar.HOUR),
+                    mCalendar.get(Calendar.MINUTE));
+            String date = getDate(mCalendar);
 
-            canvas.drawText(maxTemp + minTemp, mXOffset, mYOffset + mTextSpacingHeight, mMediumTextPaint);
-//            canvas.drawText(maxTemp, mXOffset, mYOffset + mTextSpacingHeight, mMediumTextPaint);
+            canvas.drawText(text, centerX - 60, centerY - 50, mTextPaint);
+            canvas.drawText(date, mXOffset, centerY, mSmallTextPaint);
+            canvas.drawLine(centerX - 30, centerY + 20, centerX + 30, centerY + 20, mLinePaint);
+            canvas.drawText(maxTemp, centerX - 40, centerY + 80, mMediumTextPaint);
+            canvas.drawText(minTemp, centerX + 40, centerY + 80, mSmallTextPaint);
         }
 
         /**
@@ -433,6 +455,13 @@ public class MyWatchFace extends CanvasWatchFaceService {
             }
             // decode the stream into a bitmap
             return BitmapFactory.decodeStream(assetInputStream);
+        }
+
+        private String getDate(Calendar calendar) {
+            Date date = mCalendar.getTime();
+            SimpleDateFormat sdf = new SimpleDateFormat("E, MMM d, yyyy");
+            String dayAndDate = sdf.format(date).toUpperCase();
+            return dayAndDate;
         }
     }
 }
